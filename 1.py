@@ -10,7 +10,7 @@ mpg= pd.read_csv("mpg.csv")
   
 
 # cat.jpg 이미지 표시 (경로를 이미지 위치에 맞게 수정)
-st.sidebar.image("cat1.jpg", caption="고양이 사진", use_container_width=True)
+st.sidebar.image("cat1.jpg", caption="고양이", use_container_width=True)
 
 #1. 사이드 바를 활용 
 company = st.sidebar.selectbox('원하는 자동차회사를 선택하세요.', 
@@ -24,11 +24,15 @@ st.dataframe(mpg_selected_manufacturer)
 # 전체도 보고싶다. 
 
 #c= "hyundai"
-st.subheader("7번")
-st.subheader(mpg['manufacturer'].unique().tolist())
+st.subheader("2번")
+# st.subheader(mpg['manufacturer'].unique().tolist())
 l1 = mpg['manufacturer'].unique().tolist()
 l1.append('전체')
-st.subheader(l1)
+# st.subheader(l1)
+
+text = ", ".join(l1)
+st.markdown(f"<p style='font-size:14px'>{text}</p>", unsafe_allow_html=True)
+
 
 #만약에 '전체'이 선택 -> mpg_selected = mpg.copy()
 #만약에 '전체 '빼고 나머지 => mpg_selected =mpg.query('manufacturer == @c')
@@ -43,20 +47,86 @@ else:
 st.dataframe(mpg_selected)
 
 
-#6.  
-# 1) 그룹핑을 할것을 정하고 싶어. 
-# - manufacturer, model, drv, category
-# 2) 연비 - cty, hwy
-# 3) 함수 - min, max, count, mean, sum
-st.title("6번")
-var1 = st.selectbox('분석하고 싶은 그룹을 선택', 
-                    ['manufacturer','model', 'drv', 'category'])
-var2 = st.selectbox('연비종류를 선택', ['cty','hwy'])
-var3 = st.selectbox('통계 종류 선택',['min', 'max', 'mean', 'count','sum'])
-st.title("당신이 선택한 그룹은 : " + var1 + " 연비는:  " +var2 +  " 통계는 : " +var3)
-mpg7 = mpg.groupby(var1)\
-            .agg(value = (var2, var3))
-st.dataframe(mpg7)
+
+st.subheader("3번")
+var1 = st.selectbox(
+    '분석하고 싶은 그룹을 선택', 
+    ['manufacturer', 'model', 'drv', 'category']
+)
+var2 = st.selectbox(
+    '연비종류를 선택', 
+    ['cty', 'hwy'] if 'cty' in mpg.columns else ['mpg', 'hwy']
+)
+var3 = st.selectbox(
+    '통계 종류 선택', 
+    ['min', 'max', 'mean', 'count', 'sum']
+)
+text = f"당신이 선택한 그룹은 : {var1} 연비는: {var2} 통계는 : {var3}"
+st.markdown(
+    f"<p style='font-size:14px'>{text}</p>",
+    unsafe_allow_html=True
+)
+
+if var1 not in mpg.columns or var2 not in mpg.columns:
+    st.write("선택한 변수들이 데이터에 없습니다.")
+else:
+    mpg7 = mpg.groupby(var1).agg(value=(var2, var3)).reset_index()
+    st.dataframe(mpg7)
+
+    col1, col2 = st.columns(2)
+
+    # 1) 산점도 크기 조절
+    with col1:
+        fig1, ax1 = plt.subplots(figsize=(4, 3))
+        sns.scatterplot(data=mpg, x=var2, y='displ', hue=var1, ax=ax1)
+        ax1.set_title(f"{var2} vs displ 산점도")
+        st.pyplot(fig1)
+
+    # 2) 막대 그래프 크기 조절
+    with col2:
+        fig2, ax2 = plt.subplots(figsize=(4, 3))
+        sns.barplot(data=mpg7, x=var1, y='value', ax=ax2)
+        ax2.set_title(f"{var1} 별 {var3}({var2}) 막대 그래프")
+        plt.setp(ax2.get_xticklabels(), rotation=45)
+        st.pyplot(fig2)
+
+    # 두 번째 행
+    col3, col4 = st.columns(2)
+
+    # 3) 시계열 그래프 (year 있을 때만)
+    with col3:
+        if 'year' in mpg.columns:
+            vs_year = mpg.groupby('year').agg(value=(var2, var3)).reset_index()
+            fig3, ax3 = plt.subplots(figsize=(4, 3))
+            sns.lineplot(data=vs_year, x='year', y='value', ax=ax3)
+            ax3.set_title(f"연도별 {var3}({var2}) 시계열 그래프")
+            st.pyplot(fig3)
+        else:
+            st.write("year 컬럼이 없어 시계열 그래프를 그릴 수 없습니다.")
+
+    # 4) 상자 그림 크기 조절
+    with col4:
+        fig4, ax4 = plt.subplots(figsize=(4, 3))
+        sns.boxplot(data=mpg, x=var1, y=var2, ax=ax4)
+        ax4.set_title(f"{var1} 별 {var2} 상자 그림")
+        plt.setp(ax4.get_xticklabels(), rotation=45)
+        st.pyplot(fig4)
+
+
+# #3.  
+# # 1) 그룹핑을 할것을 정하고 싶어. 
+# # - manufacturer, model, drv, category
+# # 2) 연비 - cty, hwy
+# # 3) 함수 - min, max, count, mean, sum
+# st.subheader("3번")
+# var1 = st.selectbox('분석하고 싶은 그룹을 선택', 
+#                     ['manufacturer','model', 'drv', 'category'])
+# var2 = st.selectbox('연비종류를 선택', ['cty','hwy'])
+# var3 = st.selectbox('통계 종류 선택',['min', 'max', 'mean', 'count','sum'])
+# st.subheader("당신이 선택한 그룹은 : " + var1 + " 연비는:  " +var2 +  " 통계는 : " +var3)
+# mpg7 = mpg.groupby(var1)\
+#             .agg(value = (var2, var3))
+# st.dataframe(mpg7)
 
 
 #5. multiselect를 한다. 
