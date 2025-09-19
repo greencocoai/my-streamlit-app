@@ -5,12 +5,12 @@ st.title("Qwen 챗봇 (Streamlit Client)")
 
 with st.form("chat_form"):
     system_msg = st.text_area(
-        "시스템 메시지 (역할 설명)", 
+        "역할 설명 (ex) 당신은 세계최고의 기상청 날씨 전문가입니다.", 
         value="",  
         placeholder="역할을 설명하는 시스템 메시지를 입력하세요."
     )
     user_msg = st.text_area(
-        "사용자 메시지",
+        "문의 (ex) 내일 서울 날씨는?",
         value="",  
         placeholder="질문이나 요청을 입력하세요."
     )
