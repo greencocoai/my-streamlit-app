@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-st.title("Qwen 챗봇 (Streamlit Client)")
+st.title("웅나미봇v1(실시간 안됨)")
 
 with st.form("chat_form"):
     system_msg = st.text_area(
