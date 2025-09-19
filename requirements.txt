@@ -2,3 +2,6 @@ streamlit
 pandas
 seaborn
 matplotlib
+torch
+transformers
+bitsandbytes
